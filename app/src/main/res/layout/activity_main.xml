@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/activity_main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <ListView
+        android:id="@+id/am_lv_recodeList"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:divider="#0000"
+        android:listSelector="#0000"></ListView>
+
+    <TextView
+        android:id="@+id/am_tv_btn"
+        android:layout_width="match_parent"
+        android:layout_height="45dp"
+        android:background="#a1a1a1"
+        android:gravity="center"
+        android:text="go"
+        android:textColor="#fff"
+        android:textSize="16dp"/>
+</LinearLayout>
