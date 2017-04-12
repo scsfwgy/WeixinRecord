@@ -6,6 +6,7 @@ package com.gaoyuan.weixinrecord.example;
  * 博客：http://blog.csdn.net/wgyscsf
  */
 public class Record {
+    private String id;
     private String path;
     private int second;
     private boolean isPlayed;//是否已经播放过
@@ -13,6 +14,14 @@ public class Record {
 
     public boolean isPlaying() {
         return isPlaying;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public void setPlaying(boolean playing) {
@@ -46,9 +55,11 @@ public class Record {
     @Override
     public String toString() {
         return "Record{" +
-                "path='" + path + '\'' +
+                "id='" + id + '\'' +
+                ", path='" + path + '\'' +
                 ", second=" + second +
                 ", isPlayed=" + isPlayed +
+                ", isPlaying=" + isPlaying +
                 '}';
     }
 }

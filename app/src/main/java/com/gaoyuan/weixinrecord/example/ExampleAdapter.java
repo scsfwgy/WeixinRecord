@@ -91,6 +91,10 @@ public class ExampleAdapter extends BaseAdapter {
                 record.setPlayed(true);
                 notifyDataSetChanged();
 
+                //这里更新数据库小红点。这里不知道为什么可以强转建议复习复习基础~
+                ((ExampleActivity)mContext).getMgr().updateRecord(record);
+
+
                 final AnimationDrawable animationDrawable = (AnimationDrawable) ieaLlSinger.getBackground();
                 //重置动画
                 resetAnim(animationDrawable);

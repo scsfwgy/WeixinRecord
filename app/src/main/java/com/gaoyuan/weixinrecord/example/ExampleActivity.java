@@ -4,10 +4,12 @@ import android.Manifest;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ListView;
 import android.widget.Toast;
 
 import com.gaoyuan.weixinrecord.R;
+import com.gaoyuan.weixinrecord.history.DBManager;
 import com.gaoyuan.weixinrecord.manager.AudioRecordButton;
 import com.gaoyuan.weixinrecord.manager.MediaManager;
 import com.gaoyuan.weixinrecord.utils.PermissionHelper;
@@ -21,6 +23,8 @@ public class ExampleActivity extends AppCompatActivity {
     List<Record> mRecords;
     ExampleAdapter mExampleAdapter;
     PermissionHelper mHelper;
+    //db
+    private DBManager mgr;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -40,15 +44,26 @@ public class ExampleActivity extends AppCompatActivity {
 
     private void initData() {
         mRecords = new ArrayList<>();
+        //初始化DBManager
+        mgr = new DBManager(this);
     }
 
     private void initAdapter() {
         mExampleAdapter = new ExampleAdapter(this, mRecords);
         mEmLvRecodeList.setAdapter(mExampleAdapter);
+
+        //开始获取数据库数据
+        List<Record> records = mgr.query();
+        if(records==null||records.isEmpty())return;
+        for (Record record : records) {
+            Log.e("wgy", "initAdapter: "+record.toString() );
+        }
+        mRecords.addAll(records);
+        mExampleAdapter.notifyDataSetChanged();
     }
 
     private void initListener() {
-        mEmTvBtn.setCanRecord(false);
+        mEmTvBtn.setHasRecordPromission(false);
 //        授权处理
         mHelper = new PermissionHelper(this);
 
@@ -56,7 +71,7 @@ public class ExampleActivity extends AppCompatActivity {
                 new PermissionHelper.PermissionListener() {
                     @Override
                     public void doAfterGrand(String... permission) {
-                        mEmTvBtn.setCanRecord(true);
+                        mEmTvBtn.setHasRecordPromission(true);
                         mEmTvBtn.setAudioFinishRecorderListener(new AudioRecordButton.AudioFinishRecorderListener() {
                             @Override
                             public void onFinished(float seconds, String filePath) {
@@ -66,13 +81,16 @@ public class ExampleActivity extends AppCompatActivity {
                                 recordModel.setPlayed(false);
                                 mRecords.add(recordModel);
                                 mExampleAdapter.notifyDataSetChanged();
+
+                                //添加到数据库
+                                mgr.add(recordModel);
                             }
                         });
                     }
 
                     @Override
                     public void doAfterDenied(String... permission) {
-                        mEmTvBtn.setCanRecord(false);
+                        mEmTvBtn.setHasRecordPromission(false);
                         Toast.makeText(ExampleActivity.this, "请授权,否则无法录音", Toast.LENGTH_SHORT).show();
                     }
                 }, Manifest.permission.RECORD_AUDIO, Manifest.permission.WRITE_EXTERNAL_STORAGE);
@@ -89,5 +107,13 @@ public class ExampleActivity extends AppCompatActivity {
     protected void onPause() {
         MediaManager.release();//保证在退出该页面时，终止语音播放
         super.onPause();
+    }
+
+    public DBManager getMgr() {
+        return mgr;
+    }
+
+    public void setMgr(DBManager mgr) {
+        this.mgr = mgr;
     }
 }

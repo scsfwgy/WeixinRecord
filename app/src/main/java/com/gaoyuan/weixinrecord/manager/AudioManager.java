@@ -1,6 +1,7 @@
 package com.gaoyuan.weixinrecord.manager;
 
 import android.media.MediaRecorder;
+import android.util.Log;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,9 +41,7 @@ public class AudioManager {
     }
 
     /**
-     * 回调函数，准备完毕，准备好后，button才会开始显示录音框
-     *
-     * @author nickming
+     * 回调函数，准备完毕，准备好后，button才会开始显示录音
      */
     public interface AudioStageListener {
         void wellPrepared();
@@ -126,7 +125,23 @@ public class AudioManager {
     public void release() {
         // 严格按照api流程进行
         if (mRecorder == null) return;
-        mRecorder.stop();
+        /*
+        * 这里处理一些特定情况下的异常。2017/04/12 by wgyscsf
+         */
+        try {
+            //下面三个参数必须加，不加的话会奔溃，在mediarecorder.stop();
+            //报错为：RuntimeException:stop failed
+            mRecorder.setOnErrorListener(null);
+            mRecorder.setOnInfoListener(null);
+            mRecorder.setPreviewDisplay(null);
+            mRecorder.stop();
+        } catch (IllegalStateException e) {
+            Log.i("Exception", Log.getStackTraceString(e) + "123");
+        } catch (RuntimeException e) {
+            Log.i("Exception", Log.getStackTraceString(e) + "123");
+        } catch (Exception e) {
+            Log.i("Exception", Log.getStackTraceString(e) + "123");
+        }
         mRecorder.release();
         mRecorder = null;
 
