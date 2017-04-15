@@ -29,6 +29,7 @@ public class ExampleAdapter extends BaseAdapter {
     List<Record> mRecords;
     Context mContext;
     List<AnimationDrawable> mAnimationDrawables;
+    int pos = -1;//标记当前录音索引，默认没有播放任何一个
 
     public ExampleAdapter(Context context, List<Record> records) {
         this.mContext = context;
@@ -53,7 +54,7 @@ public class ExampleAdapter extends BaseAdapter {
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    public View getView(final int position, View convertView, ViewGroup parent) {
         ViewHolder viewHolder;
         if (convertView == null) {
             convertView = LayoutInflater.from(mContext).inflate(R.layout.item_example_activity, null);
@@ -90,38 +91,45 @@ public class ExampleAdapter extends BaseAdapter {
                 //只要点击就设置为已播放状态（隐藏小红点）
                 record.setPlayed(true);
                 notifyDataSetChanged();
-
                 //这里更新数据库小红点。这里不知道为什么可以强转建议复习复习基础~
-                ((ExampleActivity)mContext).getMgr().updateRecord(record);
+                ((ExampleActivity) mContext).getMgr().updateRecord(record);
 
 
                 final AnimationDrawable animationDrawable = (AnimationDrawable) ieaLlSinger.getBackground();
                 //重置动画
                 resetAnim(animationDrawable);
-                //重置数据状态
-                resetData();
+                animationDrawable.start();
 
                 //处理点击正在播放的语音时，可以停止；再次点击时重新播放。
-                if (record.isPlaying()) {
-                    record.setPlaying(false);
-                    MediaManager.release();//重置
-                } else {
-                    record.setPlaying(true);
-                    //获取语音信号栏，开始播放动画
-                    animationDrawable.start();
-                    //播放前重置。
-                    MediaManager.release();
-                    //开始实质播放
-                    MediaManager.playSound(record.getPath(),
-                            new MediaPlayer.OnCompletionListener() {
-                                @Override
-                                public void onCompletion(MediaPlayer mp) {
-                                    animationDrawable.selectDrawable(0);//显示动画第一帧
-                                    animationDrawable.stop();
-                                }
-                            });
+                if (pos == position) {
+                    if (record.isPlaying()) {
+                        record.setPlaying(false);
+                        MediaManager.release();
+                        animationDrawable.stop();
+                        animationDrawable.selectDrawable(0);//reset
+                        return;
+                    } else {
+                        record.setPlaying(true);
+                    }
                 }
+                //记录当前位置正在播放。
+                pos = position;
+                record.setPlaying(true);
 
+                //播放前重置。
+                MediaManager.release();
+                //开始实质播放
+                MediaManager.playSound(record.getPath(),
+                        new MediaPlayer.OnCompletionListener() {
+                            @Override
+                            public void onCompletion(MediaPlayer mp) {
+                                animationDrawable.selectDrawable(0);//显示动画第一帧
+                                animationDrawable.stop();
+
+                                //播放完毕，当前播放索引置为-1。
+                                pos = -1;
+                            }
+                        });
             }
         });
         return convertView;

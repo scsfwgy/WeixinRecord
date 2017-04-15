@@ -38,7 +38,7 @@ public class AudioRecordButton extends Button implements AudioManager.AudioStage
     private boolean mReady;
     //标记是否强制终止
     private boolean isOverTime = false;
-    //最大录音时长（单位:s）
+    //最大录音时长（单位:s）。def:60s
     private int mMaxRecordTime = 60;
 
     //上下文
@@ -347,5 +347,13 @@ public class AudioRecordButton extends Button implements AudioManager.AudioStage
 
     public void setCanRecord(boolean canRecord) {
         this.canRecord = canRecord;
+    }
+
+    public int getMaxRecordTime() {
+        return mMaxRecordTime;
+    }
+
+    public void setMaxRecordTime(int maxRecordTime) {
+        mMaxRecordTime = maxRecordTime;
     }
 }
