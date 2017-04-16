@@ -5,6 +5,7 @@ import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -39,7 +40,9 @@ public class ExampleActivity extends AppCompatActivity {
     private void initView() {
         mEmLvRecodeList = (ListView) findViewById(R.id.em_lv_recodeList);
         mEmTvBtn = (AudioRecordButton) findViewById(R.id.em_tv_btn);
-
+        //设置不想要可见或者不想被点击
+        // mEmTvBtn.setVisibility(View.GONE);//隐藏
+       // mEmTvBtn.setCanRecord(false);//重写该方法，设置为不可点击
     }
 
     private void initData() {
