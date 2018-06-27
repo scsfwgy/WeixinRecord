@@ -1,11 +1,10 @@
 package com.gaoyuan.weixinrecord.example;
 
 import android.Manifest;
+import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-import android.view.View;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -42,7 +41,7 @@ public class ExampleActivity extends AppCompatActivity {
         mEmTvBtn = (AudioRecordButton) findViewById(R.id.em_tv_btn);
         //设置不想要可见或者不想被点击
         // mEmTvBtn.setVisibility(View.GONE);//隐藏
-       // mEmTvBtn.setCanRecord(false);//重写该方法，设置为不可点击
+        // mEmTvBtn.setCanRecord(false);//重写该方法，设置为不可点击
     }
 
     private void initData() {
@@ -57,17 +56,18 @@ public class ExampleActivity extends AppCompatActivity {
 
         //开始获取数据库数据
         List<Record> records = mgr.query();
-        if(records==null||records.isEmpty())return;
+        if (records == null || records.isEmpty()) return;
         for (Record record : records) {
-            Log.e("wgy", "initAdapter: "+record.toString() );
+            Log.e("wgy", "initAdapter: " + record.toString());
         }
         mRecords.addAll(records);
         mExampleAdapter.notifyDataSetChanged();
+        mEmLvRecodeList.setSelection(mRecords.size() - 1);
     }
 
     private void initListener() {
         mEmTvBtn.setHasRecordPromission(false);
-//        授权处理
+        //        授权处理
         mHelper = new PermissionHelper(this);
 
         mHelper.requestPermissions("请授予[录音]，[读写]权限，否则无法录音",
@@ -75,19 +75,17 @@ public class ExampleActivity extends AppCompatActivity {
                     @Override
                     public void doAfterGrand(String... permission) {
                         mEmTvBtn.setHasRecordPromission(true);
-                        mEmTvBtn.setAudioFinishRecorderListener(new AudioRecordButton.AudioFinishRecorderListener() {
-                            @Override
-                            public void onFinished(float seconds, String filePath) {
-                                Record recordModel = new Record();
-                                recordModel.setSecond((int) seconds <= 0 ? 1 : (int) seconds);
-                                recordModel.setPath(filePath);
-                                recordModel.setPlayed(false);
-                                mRecords.add(recordModel);
-                                mExampleAdapter.notifyDataSetChanged();
+                        mEmTvBtn.setAudioFinishRecorderListener((seconds, filePath) -> {
+                            Record recordModel = new Record();
+                            recordModel.setSecond((int) seconds <= 0 ? 1 : (int) seconds);
+                            recordModel.setPath(filePath);
+                            recordModel.setPlayed(false);
+                            mRecords.add(recordModel);
+                            mExampleAdapter.notifyDataSetChanged();
+                            mEmLvRecodeList.setSelection(mRecords.size() - 1);
 
-                                //添加到数据库
-                                mgr.add(recordModel);
-                            }
+                            //添加到数据库
+                            mgr.add(recordModel);
                         });
                     }
 

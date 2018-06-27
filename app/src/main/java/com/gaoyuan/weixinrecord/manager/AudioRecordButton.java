@@ -1,5 +1,6 @@
 package com.gaoyuan.weixinrecord.manager;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.Color;
 import android.os.Handler;
@@ -7,14 +8,13 @@ import android.os.Message;
 import android.os.Vibrator;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.widget.Button;
 
 import com.gaoyuan.weixinrecord.R;
 import com.gaoyuan.weixinrecord.utils.FileUtils;
 
 //录音按钮核心类，包括点击、响应、与弹出对话框交互等操作。
-public class AudioRecordButton extends Button implements AudioManager.AudioStageListener {
-
+public class AudioRecordButton extends android.support.v7.widget.AppCompatButton
+        implements AudioManager.AudioStageListener {
     //三个对话框的状态常量
     private static final int STATE_NORMAL = 1;
     private static final int STATE_RECORDING = 2;
@@ -49,8 +49,6 @@ public class AudioRecordButton extends Button implements AudioManager.AudioStage
     private int mRemainedTime = 10;
     //设置是否允许录音,这个是是否有录音权限
     private boolean mHasRecordPromission = true;
-    //是否允许短时间内再次点击录音，主要是防止故意多次连续点击。
-    private boolean canRecord=true;
 
     public boolean isHasRecordPromission() {
         return mHasRecordPromission;
@@ -85,19 +83,16 @@ public class AudioRecordButton extends Button implements AudioManager.AudioStage
         mAudioManager.setOnAudioStageListener(this);
 
         //有同学反应长按响应时间反馈不及时，我们将这一块动作放到DOWN事件中。去onTouchEvent方法查看
-//        setOnLongClickListener(new OnLongClickListener() {
-//
-//            @Override
-//            public boolean onLongClick(View v) {
-//                if (isHasRecordPromission()) {
-//                    mReady = true;
-//                    mAudioManager.prepareAudio();
-//                    return false;
-//                } else {
-//                    return true;
-//                }
-//            }
-//        });
+        setOnLongClickListener(v -> {
+            if (isHasRecordPromission()) {
+                mReady = true;
+                mAudioManager.prepareAudio();
+                changeState(STATE_RECORDING);
+                return false;
+            } else {
+                return true;
+            }
+        });
 
     }
 
@@ -118,7 +113,6 @@ public class AudioRecordButton extends Button implements AudioManager.AudioStage
         public void run() {
             while (isRecording) {
                 try {
-
                     //最长mMaxRecordTimes
                     if (mTime > mMaxRecordTime) {
                         mStateHandler.sendEmptyMessage(MSG_VOICE_STOP);
@@ -140,7 +134,8 @@ public class AudioRecordButton extends Button implements AudioManager.AudioStage
     private static final int MSG_VOICE_CHANGE = 0X111;
     private static final int MSG_DIALOG_DIMISS = 0X112;
 
-    private Handler mStateHandler = new Handler() {
+    @SuppressLint("HandlerLeak")
+    private final Handler mStateHandler = new Handler() {
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MSG_AUDIO_PREPARED:
@@ -212,27 +207,6 @@ public class AudioRecordButton extends Button implements AudioManager.AudioStage
 
         switch (action) {
             case MotionEvent.ACTION_DOWN:
-                //响应DOWN事件进行录音准备。放到这里会有问题，比如用户故意连续点击多次，就会出现各种问题。
-                // 所以和录制视频处理的思路一样，我们在短时间内只允许点击一次即可。
-                if (isHasRecordPromission()&&isCanRecord()) {
-                    setCanRecord(false);
-                    mReady = true;
-                    mAudioManager.prepareAudio();
-                    //这里在短时间之后再允许点击
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                Thread.sleep(1000);
-                            } catch (InterruptedException e) {
-                                e.printStackTrace();
-                            }
-                            setCanRecord(true);
-                        }
-                    }).start();
-                }
-
-                changeState(STATE_RECORDING);
                 break;
             case MotionEvent.ACTION_MOVE:
 
@@ -339,14 +313,6 @@ public class AudioRecordButton extends Button implements AudioManager.AudioStage
     @Override
     public boolean onPreDraw() {
         return false;
-    }
-
-    public boolean isCanRecord() {
-        return canRecord;
-    }
-
-    public void setCanRecord(boolean canRecord) {
-        this.canRecord = canRecord;
     }
 
     public int getMaxRecordTime() {
